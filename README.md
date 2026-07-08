@@ -28,6 +28,14 @@ turns it into the regulatory risk numbers.
 - **Reports** — a self-contained `report.html` and a native **Excel** `report.xlsx`
   (embedded charts + tables), both written by hand on the standard library.
 
+> **📊 See the report, sheet by sheet →** [**Visual guide to `report.xlsx`**](tutorial/README.md)
+> — an annotated screenshot of all 29 sheets.
+
+[![The whole-book run-off curve B(t), over 30 years](tutorial/screenshots/04_Ecoulement_Livre.png)](tutorial/README.md)
+
+*The headline output — the whole-book run-off curve `B(t)` over 30 years, with the ±200 bp stress
+(synthetic demo data). [Full walkthrough of every sheet →](tutorial/README.md)*
+
 ## What's notable about it
 - **Standard library only.** The target is a bank PC with no scientific-Python stack, so
   *everything* is hand-written on the stdlib — the linear algebra, the elastic-net
@@ -63,6 +71,7 @@ in the code or tests come from synthetic data.
 | `src/panel/`  | Data ingestion: `efm_convert_xls.ps1` (Excel `.xls`→`.xlsx`), `efm_collect.py` (stdlib `.xlsx` reader → client panel), `panel_builder.py` (builds the survival panel). |
 | `src/runoff_*.py`, `src/run_pipeline.py` | Orchestration: download → panel → fit → daily score → stress → report. |
 | `doc/` | Theory companion (markdown + built PDF) — the maths behind the model. |
+| `tutorial/` | **Visual guide to the Excel report** — an annotated screenshot of every sheet ([tutorial/README.md](tutorial/README.md)), plus the Excel-COM script that generates them. |
 
 ## Requirements
 - **Python 3.10**, standard library only.

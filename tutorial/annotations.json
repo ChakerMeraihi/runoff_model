@@ -1,0 +1,118 @@
+{
+  "_comment": "Annotation spec for the run-off report tutorial screenshots. Text is FRENCH (deliverable audience). anchor = a cell ('F7'), a range ('A4:E4') or a chart point ('chart1@0.55,0.60' = 55% across, 60% down inside chart object #1). callout = top-left cell where the caption box sits; w/h in points. Consumed by make_screenshots.ps1.",
+  "zoom": 140,
+  "order": [
+    "Glossaire", "Guide", "Synthese", "Ecoulement_Livre", "Courbe_vue_dinars",
+    "Courbe_epargne", "Courbe_vue_devises", "Courbe_hb_engagement", "Courbe_decouverts",
+    "Training", "Comparaison_Modeles", "HP_Surface_epargne", "Fiabilite", "PIT",
+    "IRRBB_EVE_NII", "IRRBB_par_livre", "Challenger_GBM", "Challenger_bars",
+    "Crise_Stress", "Crise_Bande", "Incertitude", "Incertitude_WAL",
+    "Regime", "Regime_Actuel", "Surveillance", "DATA_macro", "DATA", "Skipped", "VBA_Source"
+  ],
+  "headline": {
+    "Synthese": {
+      "capture": "A1:R12",
+      "notes": [
+        {"anchor": "F1", "callout": "M1", "w": 220, "h": 42,
+         "text": "WAL (mois) = duree de vie moyenne du solde : combien de temps l'argent reste dans le livre. Colonne en VERT."},
+        {"anchor": "D1", "callout": "M4", "w": 220, "h": 38,
+         "text": "Poids % de chaque livre dans le solde total. Le livre global est domine par les plus gros."},
+        {"anchor": "B7", "callout": "M7", "w": 220, "h": 42,
+         "text": "Ligne BOOK = livre global, agrege et pondere par les soldes de tous les livres."},
+        {"anchor": "A9", "callout": "M10", "w": 220, "h": 40,
+         "text": "Valeurs SYNTHETIQUES (demo methodo) tant que le vrai panel EFM n'est pas branche sur le PC de travail."}
+      ]
+    },
+    "Ecoulement_Livre": {
+      "capture": "G1:Z43",
+      "notes": [
+        {"anchor": "chart1@0.72,0.45", "callout": "T3", "w": 235, "h": 52,
+         "text": "B(t) = ecoulement du livre global : fraction du SOLDE encore presente au mois t. Part de 1, descend vers 0 sur 30 ans."},
+        {"anchor": "chart1@0.90,0.12", "callout": "T10", "w": 235, "h": 42,
+         "text": "Trait du bas = sous choc +200 pb : sensibilite de l'ecoulement au taux."},
+        {"anchor": "chart2@0.62,0.50", "callout": "T24", "w": 235, "h": 38,
+         "text": "Meme courbe, zoom sur les 5 premieres annees."}
+      ]
+    },
+    "Courbe_vue_dinars": {
+      "capture": "G1:Z43",
+      "notes": [
+        {"anchor": "chart1@0.72,0.50", "callout": "T3", "w": 235, "h": 48,
+         "text": "Ecoulement d'UN livre : comptes a vue DINARS (le DAV principal). B(t) = A(t) x r(t)."},
+        {"anchor": "chart1@0.88,0.28", "callout": "T10", "w": 235, "h": 48,
+         "text": "A(t) = attrition des comptes (survie), r(t) = erosion des soldes. Leur produit = B(t)."},
+        {"anchor": "chart2@0.62,0.50", "callout": "T24", "w": 235, "h": 44,
+         "text": "Comparez la vitesse entre livres : l'epargne s'ecoule lentement, les decouverts vite."}
+      ]
+    },
+    "Training": {
+      "capture": "A1:W22",
+      "notes": [
+        {"anchor": "C1", "callout": "A8", "w": 350, "h": 58,
+         "text": "SKILL % vs un modele naif. Negatif ici = NORMAL : sur un evenement rare mensuel le hasard bat a peine le naif. La valeur du modele est dans la COURBE calibree, pas la discrimination mois-a-mois."},
+        {"anchor": "I1", "callout": "A16", "w": 350, "h": 42,
+         "text": "Colonne 'calibre?(5%)' = 'oui' -> probabilites fiables (test PIT-KS, p>5%). ECE < 1% = bien calibre. C'est ce qui compte pour l'ecoulement."}
+      ]
+    },
+    "Comparaison_Modeles": {
+      "capture": "A1:S22",
+      "notes": [
+        {"anchor": "E1", "callout": "A8", "w": 330, "h": 58,
+         "text": "Colonne 'gagnant' = le modele d'ecoulement DEPLOYE par livre : convention (reglementaire) / ECM (econometrique) / hazard (comportemental A x r). On garde le plus precis hors-echantillon."},
+        {"anchor": "B1:D1", "callout": "A16", "w": 330, "h": 38,
+         "text": "MAE hors-echantillon : plus BAS = meilleur ajustement a l'ecoulement realise."}
+      ]
+    },
+    "Fiabilite": {
+      "capture": "L1:AH42",
+      "notes": [
+        {"anchor": "chart1@0.32,0.42", "callout": "Z3", "w": 245, "h": 56,
+         "text": "Diagramme de fiabilite : proba PREDITE (x) vs proba REELLE (y). Les points doivent suivre la DIAGONALE y=x = bien calibre."},
+        {"anchor": "chart1@0.70,0.72", "callout": "Z12", "w": 245, "h": 42,
+         "text": "Au-dessus de la diagonale = le modele sous-estime ; en dessous = il surestime."},
+        {"anchor": "chart2@0.5,0.5", "callout": "Z25", "w": 245, "h": 40,
+         "text": "Un diagramme par livre (5 livres) : ici epargne, puis comptes a vue dinars..."}
+      ]
+    },
+    "IRRBB_EVE_NII": {
+      "capture": "A1:N19",
+      "notes": [
+        {"anchor": "A4:E4", "callout": "G2", "w": 305, "h": 66,
+         "text": "LE RISQUE LIANT = le PIRE scenario dEVE (le plus negatif). Ici la BAISSE de taux (-200 pb / parallele -) : les depots sont un financement long, une baisse fait chuter la valeur economique."},
+        {"anchor": "A6", "callout": "G10", "w": 305, "h": 44,
+         "text": "dEVE par scenario, trie du PIRE au meilleur : 6 scenarios EBA + -/+200 pb. ADVERSE = perte de valeur economique."},
+        {"anchor": "A16", "callout": "G16", "w": 305, "h": 40,
+         "text": "dNII = variation de la marge d'interet sur 1 an. Faible pour les comptes a vue non remuneres (beta proche de 0)."}
+      ]
+    },
+    "Crise_Stress": {
+      "capture": "A1:L16",
+      "notes": [
+        {"anchor": "A3:C4", "callout": "E2", "w": 300, "h": 62,
+         "text": "La SEVERITE de la crise (chute petrole -40%, elasticite de fuite 0.5) est une HYPOTHESE ALM a caler sur 2014-16 -- PAS une prevision. Aucun modele n'apprend une crise absente des donnees."},
+        {"anchor": "A6:C7", "callout": "E9", "w": 300, "h": 46,
+         "text": "Sous crise la WAL s'effondre : 137 -> 6 mois. Le livre s'ecoule beaucoup plus vite (fuite des depots)."},
+        {"anchor": "A11", "callout": "E14", "w": 300, "h": 40,
+         "text": "Positionnement (macro generatif regime-switch AR + Student-t) = vue ECONOMIQUE de couverture, NON reglementaire."}
+      ]
+    },
+    "Regime_Actuel": {
+      "capture": "A1:P22",
+      "notes": [
+        {"anchor": "A2:B4", "callout": "A10", "w": 300, "h": 46,
+         "text": "Regime macro du DERNIER mois observe (HMM filtre) : proba de Calme / Intermediaire / Stress. Ici environ 100% Intermediaire (oil bas)."},
+        {"anchor": "A6", "callout": "A16", "w": 300, "h": 40,
+         "text": "Nombre de regimes K choisi par BIC (BIC plus bas = mieux -> K=3 retenu)."}
+      ]
+    },
+    "Surveillance": {
+      "capture": "A1:Z23",
+      "notes": [
+        {"anchor": "chart1@0.5,0.4", "callout": "T3", "w": 250, "h": 54,
+         "text": "Surveillance CUSUM : taux de marche (bleu) vs moyenne de segment. Un franchissement de seuil = RUPTURE de regime detectee."},
+        {"anchor": "chart1@0.75,0.28", "callout": "T11", "w": 250, "h": 46,
+         "text": "Alarme rupture RECENTE : NON -> le pipeline reste en routine (pas de recalibrage declenche)."}
+      ]
+    }
+  }
+}
