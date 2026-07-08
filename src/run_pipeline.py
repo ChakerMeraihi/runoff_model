@@ -243,6 +243,12 @@ def main():
     ap.add_argument("--floor", type=float, default=50.0, help="balance-below-floor event threshold (KDA)")
     ap.add_argument("--scope", default=None, help="comma-separated Rubrique keywords (default: keep all)")
     ap.add_argument("--paths", type=int, default=DEFAULT_MC_PATHS, help="Monte-Carlo paths for stress")
+    ap.add_argument("--crisis-elasticity", type=float, default=None,
+                    help="ALM what-if: imposed deposit-flight elasticity for the reverse-stress crisis (default 0.8)")
+    ap.add_argument("--crisis-oil-drop", type=float, default=None,
+                    help="ALM what-if: imposed oil-price drop fraction in the crisis (default 0.40 = -40%%)")
+    ap.add_argument("--crisis-months", type=int, default=None,
+                    help="ALM what-if: duration of the imposed oil crash, in months (default 6)")
     ap.add_argument("--dry-run", action="store_true", help="preflight + print the plan, run nothing")
     args = ap.parse_args()
 
@@ -314,6 +320,12 @@ def main():
     book_argv = _script("runoff_book.py") + panel_arg
     if not args.no_augment:                                  # augment ON by default (gated)
         book_argv += ["--augment"]
+    if args.crisis_elasticity is not None:                   # ALM what-if pass-through
+        book_argv += ["--crisis-elasticity", str(args.crisis_elasticity)]
+    if args.crisis_oil_drop is not None:
+        book_argv += ["--crisis-oil-drop", str(args.crisis_oil_drop)]
+    if args.crisis_months is not None:
+        book_argv += ["--crisis-months", str(args.crisis_months)]
     run(steps, step_label("runoff_book  (multi-product + IRRBB -> report.xlsx)"),
         book_argv, fatal=False)
 

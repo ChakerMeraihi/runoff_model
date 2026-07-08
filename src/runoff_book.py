@@ -187,9 +187,12 @@ def _augment_gate(seg_rows, base_features, aug_feats, weight_key, month_key,
 
 
 def run_book(panel_path=None, H=H_FULL, val_months=18, test_months=18,
-             min_rows=200, verbose=True, use_signatures=False, augment=False):
+             min_rows=200, verbose=True, use_signatures=False, augment=False,
+             crisis_elasticity=0.8, crisis_oil_drop=0.40, crisis_months=6):
     """Fit + score every behavioral segment and aggregate to a book run-off curve, and
-    collect ALL diagnostics (training/validation/regime/break/macro) for the xlsx report."""
+    collect ALL diagnostics (training/validation/regime/break/macro) for the xlsx report.
+    crisis_* = the imposed reverse-stress ALM assumptions (flight elasticity, oil-drop
+    fraction, crash duration in months) surfaced on the Crise_Stress report sheet."""
     if not panel_path:
         panel_path = ensure_demo_panel()
     rows, features, weight_key, month_key = prepare(panel_path)
@@ -286,7 +289,10 @@ def run_book(panel_path=None, H=H_FULL, val_months=18, test_months=18,
 
     diagnostics_book = collect_book_diagnostics(rows, features, month_key)
     irrbb_layer = compute_irrbb_layer(rows, features, weight_key, month_key,
-                                      segments, book, verbose=verbose)
+                                      segments, book, verbose=verbose,
+                                      crisis_elasticity=crisis_elasticity,
+                                      crisis_oil_drop=crisis_oil_drop,
+                                      crisis_months=crisis_months)
     return {"segments": segments, "book": book, "skipped": skipped,
             "diagnostics_book": diagnostics_book, "irrbb": irrbb_layer,
             "panel": os.path.abspath(panel_path)}
@@ -338,7 +344,8 @@ class _EroAdapter:
 
 
 def compute_irrbb_layer(rows, features, weight_key, month_key, segments, book,
-                        n_boot=20, H_unc=120, n_paths=250, elasticity=0.6, verbose=True):
+                        n_boot=20, H_unc=120, n_paths=250, elasticity=0.6, verbose=True,
+                        crisis_elasticity=0.8, crisis_oil_drop=0.40, crisis_months=6):
     import irrbb
     import macro_sim
     import param_uncertainty as pu
@@ -412,8 +419,8 @@ def compute_irrbb_layer(rows, features, weight_key, month_key, segments, book,
             positioning["generator"] = generator_used
         # imposed reverse-stress crisis anchored to an oil-crash analog (e.g. 2014-16)
         crisis = macro_sim.imposed_crisis(book["B"], base_rate, book["W_total"],
-                                          oil_drop=0.40, months=6, elasticity=0.8,
-                                          irrbb_mod=irrbb)
+                                          oil_drop=crisis_oil_drop, months=crisis_months,
+                                          elasticity=crisis_elasticity, irrbb_mod=irrbb)
 
     # --- 3) parameter uncertainty: coefficient bootstrap on the pooled book (param_uncertainty.py) ---
     uncertainty = None
@@ -1145,12 +1152,22 @@ def main():
     ap.add_argument("--augment", action="store_true",
                     help="engineered path/change features, PER-SEGMENT validation-gated")
     ap.add_argument("--signatures", action="store_true", help="path-signature features (slow)")
+    ap.add_argument("--crisis-elasticity", type=float, default=0.8,
+                    help="ALM assumption: imposed deposit-flight elasticity for the reverse-stress crisis")
+    ap.add_argument("--crisis-oil-drop", type=float, default=0.40,
+                    help="ALM assumption: imposed oil-price drop fraction (0.40 = -40%%)")
+    ap.add_argument("--crisis-months", type=int, default=6,
+                    help="ALM assumption: duration of the imposed oil crash, in months")
     args = ap.parse_args()
     panel_path = args.panel
     tag = "[panel]" if panel_path else "[demo]"
     print(f"{tag} multi-product behavioral run-off (augment={args.augment}, "
-          f"signatures={args.signatures})")
-    result = run_book(panel_path, use_signatures=args.signatures, augment=args.augment)
+          f"signatures={args.signatures}; crisis eta={args.crisis_elasticity} "
+          f"oil-drop={args.crisis_oil_drop} months={args.crisis_months})")
+    result = run_book(panel_path, use_signatures=args.signatures, augment=args.augment,
+                      crisis_elasticity=args.crisis_elasticity,
+                      crisis_oil_drop=args.crisis_oil_drop,
+                      crisis_months=args.crisis_months)
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "book_runoff.json"), "w") as f:
         json.dump(result, f, indent=2)

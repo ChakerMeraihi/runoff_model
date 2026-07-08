@@ -97,6 +97,9 @@ All of these go on `run_pipeline.py`:
 | `--scope "<kw,kw>"` | Keep only Rubriques containing these keywords (default: keep everything) |
 | `--paths <N>` | Monte-Carlo paths for the stress fan (default 1200) |
 | `--no-augment` | Turn off the engineered path features in the book |
+| `--crisis-elasticity <x>` | **ALM assumption:** deposit-flight elasticity in the imposed crisis (default 0.8) |
+| `--crisis-oil-drop <x>` | **ALM assumption:** oil-price drop fraction in the crisis, e.g. 0.55 = −55% (default 0.40) |
+| `--crisis-months <n>` | **ALM assumption:** duration of the imposed oil crash, in months (default 6) |
 | `--dry-run` | Show the plan + preflight checks, run nothing |
 
 ---
@@ -115,9 +118,21 @@ python src/run_pipeline.py --data-dir X --paths 2000       # a denser stress fan
 python src/run_pipeline.py --data-dir X --recalibrate      # re-tune on the latest data
 ```
 
-> The imposed **crisis** assumptions (flight elasticity, oil-shock depth, the rate shocks) are
-> currently set in the code, not exposed as flags. If you want the ALM team to change those from
-> the command line (e.g. `--crisis-elasticity 0.9`), ask and they can be wired in.
+**Change the crisis (reverse-stress) assumptions** — the ALM assumptions you see on the
+`Crise_Stress` sheet (that `0,8` flight elasticity, the −40% oil crash, 6 months) *are* flags:
+```
+python src/run_pipeline.py --data-dir X --crisis-elasticity 0.9    # harsher deposit flight
+python src/run_pipeline.py --data-dir X --crisis-oil-drop 0.55     # deeper oil crash (-55%)
+python src/run_pipeline.py --data-dir X --crisis-months 9          # longer crash
+python src/run_pipeline.py --data-dir X --crisis-elasticity 0.5 --crisis-months 4   # combine
+```
+Defaults are `0.8` / `0.40` / `6`. The `Crise_Stress` sheet (WAL under crisis, shortening,
+dEVE under crisis) recomputes to match — consistently, because the whole model re-runs.
+
+> **Note:** the **regulatory** rate scenarios (±200 bp and the six EBA scenarios behind
+> ΔEVE/ΔNII) are *defined by the regulator* and intentionally **not** adjustable — changing them
+> would make those numbers non-regulatory. Only the *reverse-stress crisis* (an internal ALM
+> what-if) is a knob.
 
 ---
 
