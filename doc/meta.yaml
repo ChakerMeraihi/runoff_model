@@ -1,0 +1,37 @@
+---
+title: "Behavioral Run-off of Non-Maturing Deposits"
+subtitle: "Theory and Method of the DAV Model (IRRBB, pure-stdlib)"
+author: "Chaker Meraihi"
+date: "2026"
+documentclass: report
+classoption:
+  - oneside
+geometry: margin=1in
+fontsize: 11pt
+linestretch: 1.15
+colorlinks: true
+linkcolor: RoyalBlue
+toc-depth: 2
+numbersections: true
+header-includes:
+  - \PassOptionsToPackage{bookmarksnumbered=true}{hyperref}
+  - \usepackage{amsmath,amssymb,amsthm,mathtools}
+  - \usepackage{graphicx}
+  - \AtBeginDocument{\ifdefined\symbf\renewcommand{\boldsymbol}{\symbf}\fi}
+  - \allowdisplaybreaks
+  - \numberwithin{equation}{chapter}
+  - \raggedbottom
+  - \clubpenalty=10000
+  - \widowpenalty=10000
+  - \displaywidowpenalty=10000
+  - \brokenpenalty=10000
+  - \theoremstyle{definition}
+  - \newtheorem{definition}{Definition}[chapter]
+  - \newtheorem{example}[definition]{Example}
+  - \newtheorem{remark}[definition]{Remark}
+  - \theoremstyle{plain}
+  - \newtheorem{theorem}[definition]{Theorem}
+  - \newtheorem{lemma}[definition]{Lemma}
+  - \newtheorem{proposition}[definition]{Proposition}
+  - \newtheorem{corollary}[definition]{Corollary}
+---

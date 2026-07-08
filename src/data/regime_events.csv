@@ -1,0 +1,10 @@
+start_month,end_month,regime_state,severity,description
+2005-01,2008-08,hydrocarbon_liquid,0,High oil prices (~$50-140); strong hydrocarbon revenue and FX-reserve accumulation
+2008-09,2009-12,external_shock,2,Global financial crisis oil collapse (~$140 to ~$40); revenue shock
+2010-01,2014-06,hydrocarbon_liquid,0,Oil recovery (~$80-115); FX reserves near peak (~$190bn)
+2014-07,2016-12,stagnant,2,Oil price collapse (~$115 to ~$30); fiscal deficit widens; reserves begin sharp decline
+2017-01,2019-12,stagnant,2,Unconventional financing law (Nov 2017) monetizes the deficit; reserves fall; DZD managed depreciation
+2020-01,2021-12,currency_stress,3,COVID shock + oil crash (Apr-2020 Brent ~$23); import restrictions; reserves drop; parallel-market premium widens
+2022-01,2022-12,hydrocarbon_liquid,1,Oil spike (Russia-Ukraine war); hydrocarbon revenue rebound; reserves stabilize
+2023-01,2024-12,stagnant,1,Oil moderating (~$75-85); partial stabilization; managed DZD
+2025-01,2026-12,stagnant,1,Recent period; provisional classification pending data

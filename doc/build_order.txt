@@ -1,0 +1,14 @@
+# Build order for the DAV run-off companion.
+00_front_matter.md
+ch01_problem.md
+ch02_data_panel.md
+ch03_survival_hazard.md
+ch04_elastic_net.md
+ch05_signatures.md
+ch06_erosion.md
+ch07_baselines.md
+ch08_regimes.md
+ch09_breaks_monitoring.md
+ch10_uncertainty.md
+ch11_validation.md
+ch12_system.md
