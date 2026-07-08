@@ -50,6 +50,36 @@ WANT = {
     "dateecheance":       "date_echeance",
 }
 
+# Keyword fallback (ALL keywords must be substrings of the normalized header). This makes
+# resolution tolerant of the real-data suffixes ('IDENTIF. NATIONAL -B35T' -> resolved),
+# renames and year-to-year column drift -- the exact WANT map above is just the fast path.
+# ORDER matters: more specific specs first (e.g. identif+national before identif+compte).
+WANT_KW = [
+    ("identif_national", ("identif", "national")),
+    ("identif_compte",   ("identif", "compte")),
+    ("code_type_compte", ("type", "compte")),       # 'CODE TYPE COMPTE -B35M'
+    ("ordinal_compte",   ("ordinal",)),             # 'ORDINAL DU COMPTE' (drift alternative)
+    ("date_ouverture",   ("ouverture",)),
+    ("date_echeance",    ("echeance",)),
+    ("solde_kda",        ("ctrvl",)),               # 'CTRVL KDA' = the balance/encours
+    ("business_line",    ("business",)),
+    ("segmentation_n2",  ("segmentation",)),
+    ("devise",           ("devise",)),
+    ("rubrique",         ("rubrique",)),            # 'Rubriques' (x2 niveaux -> _2 suffix)
+    ("periode",          ("periode",)),
+]
+
+
+def _resolve_col(k):
+    """Normalized header `k` -> output column name: exact WANT first, then keyword
+    substring match (tolerant of suffixes/drift). None if nothing matches."""
+    if k in WANT:
+        return WANT[k]
+    for name, kws in WANT_KW:
+        if all(kw in k for kw in kws):
+            return name
+    return None
+
 # The three section sheets in the consistent EFM workbook (one per balance-sheet side).
 # For the DEPOSIT run-off you want 'Details Ressources'.
 SECTION_SHEETS = {
@@ -118,10 +148,15 @@ def read_xlsx_sheet(path, sheet_name):
         # rels: r:id -> worksheet target
         rels = ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))
         rid_to_target = {r.get("Id"): r.get("Target") for r in rels}
-        # resolve sheet by normalized name
+        # resolve sheet by normalized name (exact), else by its significant word(s) so
+        # 'Détails Ressources' still matches 'Détail Ressources' / 'Détails des Ressources'.
+        tnorm = _norm(sheet_name)
+        twords = [w for w in (_norm(x) for x in sheet_name.split())
+                  if len(w) >= 4 and w not in ("detail", "details", "des")]
         target = None
         for nm, rid in name_to_rid.items():
-            if _norm(nm) == _norm(sheet_name):
+            n = _norm(nm)
+            if n == tnorm or (twords and all(w in n for w in twords)):
                 t = rid_to_target.get(rid, "")
                 target = t if t.startswith("xl/") else "xl/" + t.lstrip("/")
                 break
@@ -195,17 +230,18 @@ def resolve_period(path):
     return (p, lbl) if p else period_from_path(path)
 
 def _build_idx_map(header):
-    """map normalized header -> output cols; duplicate wanted names get _2,_3 (e.g. two 'Rubriques')."""
+    """map header cells -> output cols by NAME (keyword-tolerant, so real suffixes like
+    '-B35M'/'-B35T' and minor drift still resolve); duplicate names get _2,_3 (two 'Rubriques')."""
     idx_map = {}                                                # output name -> source col idx
     for j, h in enumerate(header):
-        k = _norm(h)
-        if k in WANT:
-            name = WANT[k]
-            if name in idx_map:                                  # duplicate (rubrique niveau 1 & 2)
-                n = 2
-                while f"{name}_{n}" in idx_map: n += 1
-                name = f"{name}_{n}"
-            idx_map[name] = j
+        name = _resolve_col(_norm(h))
+        if not name:
+            continue
+        if name in idx_map:                                      # duplicate (rubrique niveau 1 & 2)
+            n = 2
+            while f"{name}_{n}" in idx_map: n += 1
+            name = f"{name}_{n}"
+        idx_map[name] = j
     return idx_map
 
 # ---------------------------------------------------------------- modes
@@ -232,7 +268,7 @@ def cmd_profile(root, sheet):
     header = rows[0]
     print(f"\n'{sheet}' header ({len(header)} cols) -> normalized key -> WANT match:")
     for j, h in enumerate(header):
-        key = _norm(h); print(f"  col[{j:2d}] {repr(h)[:38]:40s} norm={key:22s} -> {WANT.get(key,'')}")
+        key = _norm(h); print(f"  col[{j:2d}] {repr(h)[:38]:40s} norm={key:22s} -> {_resolve_col(key) or ''}")
     print(f"\n{len(rows)-1} data rows. Edit WANT to map any missing balance/key columns.")
 
 def cmd_collect(root, out_dir, sheet, stacked=False):

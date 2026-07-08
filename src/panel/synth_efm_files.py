@@ -40,9 +40,10 @@ SEG_SPECS = [
 MONTHS_FR = {1: "Janvier", 2: "Fevrier", 3: "Mars", 4: "Avril", 5: "Mai", 6: "Juin",
              7: "Juillet", 8: "Aout", 9: "Septembre", 10: "Octobre", 11: "Novembre",
              12: "Decembre"}
-# header labels map to efm_collect.WANT after normalization (accents/spaces/case stripped)
-HEADER = ["PERIODE", "Business Line", "IDENTIF. NATIONAL", "Rubriques",
-          "CODE TYPE COMPTE", "DATE OUVERTURE", "CTRVL KDA"]
+# header labels reproduce the REAL data's suffixes ('-B35T'/'-B35M') so the test exercises
+# the keyword-tolerant resolver, not just exact-name matches.
+HEADER = ["PERIODE", "Business Line", "IDENTIF. NATIONAL -B35T", "Rubriques",
+          "CODE TYPE COMPTE -B35M", "DATE OUVERTURE COMPTE -B35M", "CTRVL KDA"]
 SHEET = "Détails Ressources"
 
 
