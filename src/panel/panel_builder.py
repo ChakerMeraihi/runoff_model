@@ -24,7 +24,7 @@ import glob
 import math
 import os
 
-from dav_reader import read_dav_file, parse_us_date, norm, month_int
+from dav_reader import read_dav_file, parse_us_date, parse_number, norm, month_int
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,33 +67,113 @@ def _in_scope(rec, scope_keywords, require_ressources):
     return any(k in r for k in scope_keywords)
 
 
-def build_panel(in_dir, key_extra=("type_compte",), scope_keywords=None,
-                require_ressources=True, floor=0.0, carry_gaps=True,
-                macro_pit=None):
+def _dav_records(in_dir):
+    """Yield reader records from every DAV_*.txt / .text dump in a directory."""
     files = sorted(glob.glob(os.path.join(in_dir, "DAV_*.txt")) +
                    glob.glob(os.path.join(in_dir, "DAV_*.text")))
-    # account -> {month_int: balance}, plus opening month and label fields
-    acc = {}
-    all_months = set()
     for path in files:
         recs, meta = read_dav_file(path)
         if not meta.get("ok"):
             continue
         for r in recs:
-            if not _in_scope(r, scope_keywords, require_ressources):
-                continue
-            key = (r["client_id"],) + tuple(r.get(k) for k in key_extra)
-            mi = r["month_int"]
-            all_months.add(mi)
-            a = acc.setdefault(key, {"bal": {}, "open": None, "rub": r["rubrique"],
-                                     "type": r["type_compte"],
-                                     "segment": segment_of(r["rubrique"])})
-            # if duplicate (key, month): aggregate balances
-            a["bal"][mi] = (a["bal"].get(mi, 0.0) or 0.0) + (r["ctrvl_kda"] or 0.0)
-            od = parse_us_date(r["date_ouverture"])
-            if od and a["open"] is None:
-                a["open"] = month_int(*od)
+            yield r
 
+
+def _efm_records(in_dir, sheet=None):
+    """Yield reader-shaped records from the converted EFM .xlsx workbooks (the 'Détails
+    Ressources' deposit section). Reuses efm_collect's pure-stdlib .xlsx reader + WANT
+    column resolver, so the SAME survival logic serves both data sources. Grain is the
+    client (IDENTIF.NATIONAL) since EFM usually has no per-account id -> the account key
+    is (client, type_compte), exactly as for DAV. The period is the workbook's month
+    (from its filename). Old binary .xls are skipped (convert them first with the ps1)."""
+    import efm_collect as efm
+    sheet = sheet or efm.SECTION_SHEETS["ressources"]
+    for p in sorted(efm.find_efm_files(in_dir)):
+        if efm.detect_format(p) != "xlsx":                # skip old .xls / unknown
+            continue
+        period, _label = efm.resolve_period(p)
+        if not period:
+            continue
+        try:
+            rows = efm.read_xlsx_sheet(p, sheet)
+        except Exception:                                 # unreadable / sheet missing
+            continue
+        if not rows:
+            continue
+        idx = efm._build_idx_map(rows[0])
+        if "identif_national" not in idx or "solde_kda" not in idx:
+            continue                                      # not the expected section/schema
+        y, mo = int(period[:4]), int(period[5:7])
+        mi = month_int(y, mo)
+        for row in rows[1:]:
+            def cell(name):
+                j = idx.get(name)
+                v = row[j] if (j is not None and j < len(row)) else None
+                return v.strip() if isinstance(v, str) else v
+            cid = cell("identif_national")
+            if not cid:
+                continue
+            yield {
+                "client_id": cid,
+                "year": y, "month": mo, "month_int": mi,
+                "ressources": "Ressources",               # we read the Ressources section
+                "business_line": cell("business_line"),
+                "type_compte": cell("code_type_compte") or cell("ordinal_compte"),
+                "rubrique": cell("rubrique"),
+                "date_ouverture": cell("date_ouverture"),
+                "ctrvl_kda": parse_number(cell("solde_kda")),
+                "solde": None,
+                "currency": cell("devise"),
+            }
+
+
+def _detect_source(in_dir):
+    """'dav' if DAV_*.txt dumps are present, else 'efm' if EFM workbooks are found under
+    a 06-EFM folder, else None."""
+    if (glob.glob(os.path.join(in_dir, "DAV_*.txt")) or
+            glob.glob(os.path.join(in_dir, "DAV_*.text"))):
+        return "dav"
+    try:
+        import efm_collect as efm
+        if next(iter(efm.find_efm_files(in_dir)), None) is not None:
+            return "efm"
+    except Exception:
+        pass
+    return None
+
+
+def build_panel(in_dir, key_extra=("type_compte",), scope_keywords=None,
+                require_ressources=True, floor=0.0, carry_gaps=True,
+                macro_pit=None, source="auto"):
+    if source == "auto":
+        source = _detect_source(in_dir)
+    if source == "efm":
+        records = _efm_records(in_dir)
+    elif source == "dav":
+        records = _dav_records(in_dir)
+    else:
+        raise RuntimeError(f"no DAV_*.txt dumps or EFM workbooks found under {in_dir!r}")
+
+    # account -> {month_int: balance}, plus opening month and label fields
+    acc = {}
+    all_months = set()
+    for r in records:
+        if not _in_scope(r, scope_keywords, require_ressources):
+            continue
+        key = (r["client_id"],) + tuple(r.get(k) for k in key_extra)
+        mi = r["month_int"]
+        all_months.add(mi)
+        a = acc.setdefault(key, {"bal": {}, "open": None, "rub": r["rubrique"],
+                                 "type": r["type_compte"],
+                                 "segment": segment_of(r["rubrique"])})
+        # if duplicate (key, month): aggregate balances
+        a["bal"][mi] = (a["bal"].get(mi, 0.0) or 0.0) + (r["ctrvl_kda"] or 0.0)
+        od = parse_us_date(r["date_ouverture"])
+        if od and a["open"] is None:
+            a["open"] = month_int(*od)
+
+    if not all_months:
+        raise RuntimeError(f"no in-scope records found under {in_dir!r} (source={source})")
     panel_start, panel_end = min(all_months), max(all_months)
     macro = _load_macro(macro_pit) if macro_pit else None
     macro_cols = macro["cols"] if macro else []

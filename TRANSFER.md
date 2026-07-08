@@ -1,7 +1,10 @@
 # Transfer to the work PC (bank workstation)
 
-The bank PC cannot clone or download a zip — you open this repo on github.com and
-**copy each file's contents by hand** into a file of the same name/location.
+Get the code onto the work PC either way:
+- **Download ZIP** (repo is public): `< > Code` → *Download ZIP*, or
+  `https://github.com/ChakerMeraihi/runoff_model/archive/refs/heads/main.zip`, then extract.
+- **Or copy by hand** if downloads are blocked: open each file on github.com and paste its
+  contents into a file of the same name/location.
 
 ## Rules
 - **Code only, never data.** Nothing under `_out/`, `_artifacts/`, `_synth/`,
@@ -17,23 +20,30 @@ python src/model/run_tests.py      # expect the full self-test suite green
 ```
 If it's green, the paste is intact and imports resolve.
 
-## Work-PC run order
-1. **Organize/convert the EFM folders** (Excel; originals untouched, mirror tree written under `-OutDir`):
+## Work-PC run order — 2 commands
+1. **Convert/organize the EFM folders** (Excel; originals untouched, a mirror `.xlsx` tree is written under `-OutDir`):
    ```
    powershell src/panel/efm_convert_xls.ps1 -Root "<...\Controle_de_gestion>" -OutDir "<...\EFM_converted>"
    ```
-2. **Profile one real EFM** to confirm the schema, then share `profile_report.txt`
-   (tune `panel_builder.segment_of()` / `model/products.py` and grain/scope/floor to the real Rubrique labels):
-   ```
-   python src/panel/profile_dav.py "<...\EFM_converted>"
-   ```
-3. **Run the autonomous pipeline** (download macro → panel → eval/fit → daily → stress → report/book):
+2. **Run the pipeline** — it auto-detects the EFM tree, builds the panel, fits, and writes the reports:
    ```
    python src/run_pipeline.py --data-dir "<...\EFM_converted>"
    ```
-   - First run auto-recalibrates; `--recalibrate` forces governed HP re-selection.
-   - The `src/data/` macro layer needs internet. If the bank PC is offline, fetch macro
-     on an internet machine and carry the **public** macro CSVs over (still no client data).
+   Deliverables land in `src/_out/` (`report.html`, `book/report.xlsx`, `stress/`, `calibration.csv`)
+   and `src/_artifacts/model.json`.
+
+Notes:
+- First run auto-recalibrates (selects hyper-parameters); later runs reuse them. `--recalibrate` forces it.
+- Works on **shorter EFM history** too — the multi-product book automatically shrinks its walk-forward
+  validation window when there are few months (validation is just weaker with less history).
+- The `src/data/` macro layer needs **internet**. Offline bank PC: fetch macro on an internet machine,
+  carry the **public** macro CSVs into `src/data/_out/`, and add `--skip-macro`.
+
+**Only if command 2 errors on columns** (real EFM headers / sheet names differ from the assumed ones),
+profile one workbook and send me the output so I can tune the column map (`efm_collect.WANT`):
+```
+python src/panel/efm_collect.py profile "<...\EFM_converted>"
+```
 
 ---
 
@@ -111,6 +121,7 @@ If it's green, the paste is intact and imports resolve.
 - [ ] panel_builder.py
 - [ ] profile_dav.py
 - [ ] synth_dav_files.py
+- [ ] synth_efm_files.py
 - [ ] **efm_convert_xls.ps1**  ← the EFM folder-organizer (PowerShell + Excel)
 
 **Optional (reference docs):** `README.md`, `PLAN*.md`, `doc/*.md`, `doc/build.ps1`, `doc/meta.yaml`, `doc/build_order.txt`.

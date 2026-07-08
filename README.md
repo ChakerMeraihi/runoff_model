@@ -35,9 +35,13 @@ python src/model/run_tests.py        # expect all self-tests green
 python src/run_pipeline.py --demo    # full end-to-end on synthetic data
 ```
 
-## Real run (work PC)
+## Real run (work PC) — 2 commands
 See **[TRANSFER.md](TRANSFER.md)**. In short:
 ```
 powershell src/panel/efm_convert_xls.ps1 -Root "<...\Controle_de_gestion>" -OutDir "<...\EFM_converted>"
 python src/run_pipeline.py --data-dir "<...\EFM_converted>"
 ```
+`run_pipeline.py` auto-detects whether `--data-dir` holds `DAV_*.txt` dumps or a converted
+EFM tree (`06-EFM/*.xlsx`), builds the survival panel, fits, and writes the reports. It adapts
+to shorter EFM history automatically. If the real EFM headers differ from the assumed ones,
+`python src/panel/efm_collect.py profile "<EFM_converted>"` prints them so the column map can be tuned.

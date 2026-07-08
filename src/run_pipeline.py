@@ -148,8 +148,17 @@ def preflight(args):
             import glob
             dumps = glob.glob(os.path.join(args.dav_dir, "DAV_*.txt")) + \
                 glob.glob(os.path.join(args.dav_dir, "DAV_*.text"))
-            if not dumps:
-                problems.append(f"no DAV_*.txt dumps in {args.dav_dir}")
+            has_efm = False
+            if not dumps:                                 # accept a converted EFM tree too
+                try:
+                    sys.path.insert(0, os.path.join(HERE, "panel"))
+                    import efm_collect
+                    has_efm = next(iter(efm_collect.find_efm_files(args.dav_dir)), None) is not None
+                except Exception:
+                    has_efm = False
+            if not dumps and not has_efm:
+                problems.append(f"no DAV_*.txt dumps and no EFM workbooks "
+                                f"(06-EFM/*.xlsx) in {args.dav_dir}")
     if not args.skip_macro and not os.path.exists(MACRO_PIT) and args.dav_dir:
         print(f"  note: macro panel absent -> will fetch (needs internet to "
               f"BoA/IMF/World Bank). Use --skip-macro to skip.")
@@ -216,7 +225,8 @@ def main():
         description="DAV run-off ALM master runner.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     ap.add_argument("--dav-dir", "--data-dir", dest="dav_dir", default=None,
-                    help="dir of monthly dumps (real data). --data-dir is an alias.")
+                    help="dir of real data: DAV_*.txt dumps OR a converted EFM tree "
+                         "(06-EFM/*.xlsx). --data-dir is an alias.")
     ap.add_argument("--demo", action="store_true",
                     help="run on SYNTHETIC data (required if no --data-dir; never in production)")
     ap.add_argument("--recalibrate", action="store_true",

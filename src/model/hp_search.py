@@ -106,6 +106,16 @@ def hp_search(rows, features, month_key="month_int", event_key="event",
     where best carries both selections."""
     lambdas = lambdas or _lambda_path()
     months = sorted({r[month_key] for r in rows})
+    # Adaptive windowing: on a SHORT panel (fewer than min_train+val_len+1 distinct
+    # months) shrink the walk-forward window so at least one fold still fits, instead of
+    # failing outright. This ONLY triggers when the panel is too short for the defaults --
+    # long panels keep the validated 60/12 behaviour byte-for-byte. Lets the multi-product
+    # book and a first-run recalibration work on the shorter real EFM history.
+    n_months = len(months)
+    if n_months < min_train + val_len + 1:
+        val_len = max(3, min(val_len, n_months // 4))
+        min_train = max(6, min(min_train, n_months - val_len - 1))
+        step = max(1, min(step, val_len))
     fold_months = walk_forward(months, H, min_train=min_train, step=step, val_len=val_len)
     by_month = {}
     for r in rows:

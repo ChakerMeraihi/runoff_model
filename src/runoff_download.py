@@ -68,7 +68,9 @@ def _refresh_macro(skip, refresh):
 
 def main():
     ap = argparse.ArgumentParser(description="Update DAV run-off data (macro + panel).")
-    ap.add_argument("--dav-dir", default=None, help="dir of DAV_*.txt dumps (omit -> synth demo)")
+    ap.add_argument("--dav-dir", "--data-dir", dest="dav_dir", default=None,
+                    help="dir of real data: DAV_*.txt dumps OR a converted EFM tree "
+                         "(06-EFM/*.xlsx). Omit -> synthetic demo. --data-dir is an alias.")
     ap.add_argument("--out", default=PANEL_CSV, help="output panel.csv path")
     ap.add_argument("--skip-macro", action="store_true")
     ap.add_argument("--refresh-macro", action="store_true")
@@ -83,7 +85,8 @@ def main():
     macro = MACRO_PIT if os.path.exists(MACRO_PIT) else None
     if args.dav_dir:
         scope = [s.strip().upper() for s in args.scope.split(",")] if args.scope else None
-        print(f"  panel: rebuilding from DAV dumps in {args.dav_dir} ...")
+        src = panel_builder._detect_source(args.dav_dir) or "?"
+        print(f"  panel: rebuilding from {src.upper()} data in {args.dav_dir} ...")
         rows, summ = panel_builder.build_panel(args.dav_dir, scope_keywords=scope,
                                                floor=args.floor, macro_pit=macro)
     else:
