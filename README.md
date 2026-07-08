@@ -85,6 +85,9 @@ python src/run_pipeline.py --data-dir "<...\EFM_converted>"
 converted EFM tree (`06-EFM/*.xlsx`), builds the survival panel, fits, and writes the
 reports — adapting automatically to shorter history.
 
+**For day-to-day operation** — every command, all the flags, what-if re-runs, troubleshooting,
+and how to read the Excel report — see **[GUIDE.md](GUIDE.md)**.
+
 ## Code only, never data
 No client data and no pipeline outputs are ever committed. The `.gitignore` enforces it
 (`_out/`, `_artifacts/`, `_synth/`, `panel/_out/`, and all `*.csv` / `*.xlsx`). The one
